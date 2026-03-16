@@ -362,8 +362,8 @@
         <input type="text" id="shopify-url" placeholder="871a55-20.myshopify.com" />
       </div>
       <div class="config-row">
-        <label>Clé API Anthropic</label>
-        <input type="password" id="anthropic-key" placeholder="sk-ant-xxxxxxxxxxxxxxxx" />
+        <label>Clé API Groq (gratuite)</label>
+        <input type="password" id="anthropic-key" placeholder="gsk_xxxxxxxxxxxxxxxxxxxxxxxx" />
       </div>
       <button class="save-btn" onclick="saveConfig()">Sauvegarder</button>
       <div class="saved-indicator" id="saved-indicator">✓ Configuration sauvegardée</div>
@@ -576,9 +576,9 @@ async function generate() {
   const keyword = document.getElementById('keyword').value.trim();
   if (!keyword) { alert('Entre un mot-clé principal.'); return; }
 
-  const anthropicKey = localStorage.getItem('cbd_anthropic_key');
-  if (!anthropicKey) {
-    alert('Configure ta clé API Anthropic dans ⚙ Configuration.');
+  const groqKey = localStorage.getItem('cbd_anthropic_key');
+  if (!groqKey) {
+    alert('Configure ta clé API Groq dans ⚙ Configuration.');
     document.getElementById('config-section').style.display = 'block';
     loadConfig();
     return;
@@ -622,24 +622,26 @@ Réponds UNIQUEMENT avec le JSON valide.`;
 
   try {
     setProgress(30); setStatus('Rédaction en cours...');
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': anthropicKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
+        'Authorization': 'Bearer ' + groqKey
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-20250514',
+        model: 'llama-3.3-70b-versatile',
         max_tokens: 4000,
-        messages: [{ role: 'user', content: prompt }]
+        temperature: 0.7,
+        messages: [
+          { role: 'system', content: 'Tu es un expert SEO CBD. Réponds UNIQUEMENT avec du JSON valide, sans texte avant ou après.' },
+          { role: 'user', content: prompt }
+        ]
       })
     });
     setProgress(75); setStatus('Optimisation SEO...');
     const data = await res.json();
     if (data.error) throw new Error(data.error.message);
-    const raw = data.content.map(i => i.text || '').join('');
+    const raw = data.choices[0].message.content;
     const clean = raw.replace(/```json|```/g, '').trim();
     currentResult = JSON.parse(clean);
     setProgress(95); setStatus('Mise en forme...');
@@ -781,4 +783,3 @@ async function publishToShopify() {
 </script>
 </body>
 </html>
-
