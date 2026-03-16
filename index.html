@@ -1,1 +1,784 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Générateur Blog CBD</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #1a7a4a;
+    --green-light: #e8f5ee;
+    --green-mid: #2d9e63;
+    --green-border: #a8dbbe;
+    --amber: #b45309;
+    --amber-light: #fef3c7;
+    --amber-border: #fcd34d;
+    --red: #991b1b;
+    --red-light: #fee2e2;
+    --surface: #ffffff;
+    --surface-2: #f8faf9;
+    --surface-3: #f1f5f2;
+    --border: #e2ebe5;
+    --border-strong: #c8d9cc;
+    --text: #111c15;
+    --text-2: #4a6455;
+    --text-3: #7a9485;
+    --radius: 10px;
+    --radius-lg: 16px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--surface-2);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .logo-dot {
+    width: 36px; height: 36px; border-radius: 10px;
+    background: var(--green); display: flex; align-items: center;
+    justify-content: center;
+  }
+  .logo-dot svg { width: 20px; height: 20px; fill: white; }
+  .header h1 { font-size: 16px; font-weight: 600; color: var(--text); }
+  .header-badge {
+    font-size: 11px; padding: 3px 10px; border-radius: 20px;
+    background: var(--green-light); color: var(--green);
+    border: 1px solid var(--green-border); font-weight: 500;
+  }
+  .config-btn {
+    font-size: 13px; padding: 7px 16px; border-radius: var(--radius);
+    border: 1px solid var(--border-strong); background: var(--surface);
+    color: var(--text-2); cursor: pointer; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .config-btn:hover { background: var(--surface-3); }
+
+  /* MAIN LAYOUT */
+  .main { display: grid; grid-template-columns: 380px 1fr; gap: 0; min-height: calc(100vh - 65px); }
+
+  /* LEFT PANEL */
+  .panel-left {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px;
+    overflow-y: auto;
+  }
+
+  .section-title {
+    font-size: 11px; font-weight: 600; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 12px;
+  }
+
+  /* API CONFIG */
+  .config-section {
+    background: var(--surface-3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 24px;
+  }
+  .config-row { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+  .config-row:last-child { margin-bottom: 0; }
+  .config-row label { font-size: 12px; color: var(--text-2); font-weight: 500; }
+  .config-row input {
+    font-family: 'DM Mono', monospace; font-size: 12px;
+    padding: 8px 10px; border: 1px solid var(--border-strong);
+    border-radius: 8px; background: var(--surface);
+    color: var(--text); outline: none;
+    transition: border-color 0.15s;
+  }
+  .config-row input:focus { border-color: var(--green-mid); }
+  .save-btn {
+    width: 100%; padding: 8px; font-size: 13px; font-weight: 500;
+    background: var(--green); color: white; border: none;
+    border-radius: 8px; cursor: pointer; font-family: inherit;
+    transition: opacity 0.15s; margin-top: 4px;
+  }
+  .save-btn:hover { opacity: 0.88; }
+  .saved-indicator {
+    font-size: 12px; color: var(--green); text-align: center;
+    margin-top: 6px; display: none;
+  }
+
+  /* CATEGORIES */
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 24px; }
+  .cat-btn {
+    padding: 12px 10px; border: 1px solid var(--border);
+    border-radius: var(--radius); background: var(--surface);
+    cursor: pointer; text-align: center; transition: all 0.15s;
+    font-family: inherit;
+  }
+  .cat-btn:hover { border-color: var(--green-border); background: var(--green-light); }
+  .cat-btn.active { border-color: var(--green-mid); background: var(--green-light); }
+  .cat-btn .icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  .cat-btn .name { font-size: 12px; font-weight: 600; color: var(--text); display: block; }
+  .cat-btn .sub { font-size: 10px; color: var(--text-3); display: block; margin-top: 1px; }
+  .cat-btn.active .name { color: var(--green); }
+
+  /* FORM */
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 12px; font-weight: 500; color: var(--text-2); margin-bottom: 6px; }
+  .field input, .field select, .field textarea {
+    width: 100%; font-family: inherit; font-size: 13px;
+    padding: 9px 12px; border: 1px solid var(--border-strong);
+    border-radius: var(--radius); background: var(--surface);
+    color: var(--text); outline: none; transition: border-color 0.15s;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--green-mid);
+  }
+  .field textarea { resize: vertical; min-height: 58px; }
+
+  /* ANGLES */
+  .angle-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+  .angle-btn {
+    font-size: 12px; padding: 5px 12px; border-radius: 20px;
+    border: 1px solid var(--border-strong); background: transparent;
+    color: var(--text-2); cursor: pointer; font-family: inherit;
+    transition: all 0.15s;
+  }
+  .angle-btn:hover { border-color: var(--green-border); }
+  .angle-btn.active { background: var(--green-light); border-color: var(--green-mid); color: var(--green); font-weight: 500; }
+
+  /* GENERATE BTN */
+  .gen-btn {
+    width: 100%; padding: 13px; font-size: 15px; font-weight: 600;
+    background: var(--green); color: white; border: none;
+    border-radius: var(--radius); cursor: pointer; font-family: inherit;
+    margin-top: 20px; transition: all 0.15s; display: flex;
+    align-items: center; justify-content: center; gap: 8px;
+  }
+  .gen-btn:hover { background: var(--green-mid); }
+  .gen-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .gen-btn .spinner {
+    width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white; border-radius: 50%;
+    animation: spin 0.7s linear infinite; display: none;
+  }
+  .gen-btn.loading .spinner { display: block; }
+  .gen-btn.loading .btn-text { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* RIGHT PANEL */
+  .panel-right { padding: 28px; overflow-y: auto; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; min-height: 60vh; text-align: center; gap: 12px;
+  }
+  .empty-icon { font-size: 48px; opacity: 0.3; }
+  .empty-state h2 { font-size: 18px; font-weight: 500; color: var(--text-2); }
+  .empty-state p { font-size: 13px; color: var(--text-3); max-width: 300px; line-height: 1.6; }
+
+  /* RESULT */
+  .result-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    display: none;
+  }
+  .result-card.show { display: block; }
+
+  .result-header {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .result-title { font-size: 15px; font-weight: 600; color: var(--text); flex: 1; margin-right: 16px; }
+  .result-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .action-btn {
+    font-size: 12px; padding: 7px 14px; border-radius: 8px;
+    border: 1px solid var(--border-strong); background: var(--surface);
+    color: var(--text-2); cursor: pointer; font-family: inherit;
+    transition: all 0.15s; font-weight: 500;
+  }
+  .action-btn:hover { background: var(--surface-3); }
+  .publish-btn {
+    font-size: 12px; padding: 7px 16px; border-radius: 8px;
+    background: var(--green); color: white; border: none;
+    cursor: pointer; font-family: inherit; font-weight: 600;
+    transition: all 0.15s; display: flex; align-items: center; gap: 6px;
+  }
+  .publish-btn:hover { background: var(--green-mid); }
+  .publish-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .publish-spinner {
+    width: 12px; height: 12px; border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: white; border-radius: 50%;
+    animation: spin 0.7s linear infinite; display: none;
+  }
+
+  /* TABS */
+  .tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 24px; }
+  .tab {
+    font-size: 13px; padding: 12px 16px; cursor: pointer;
+    color: var(--text-3); border-bottom: 2px solid transparent;
+    margin-bottom: -1px; font-weight: 500; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text-2); }
+  .tab.active { color: var(--green); border-bottom-color: var(--green); }
+
+  /* PANELS */
+  .tab-panel { display: none; padding: 24px; }
+  .tab-panel.active { display: block; }
+
+  .article-content {
+    font-size: 14px; line-height: 1.85; color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+  }
+  .article-content h1 { font-size: 20px; font-weight: 600; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); color: var(--text); }
+  .article-content h2 { font-size: 16px; font-weight: 600; margin: 20px 0 8px; color: var(--text); }
+  .article-content p { margin-bottom: 12px; color: var(--text); }
+  .article-content ul, .article-content ol { padding-left: 20px; margin-bottom: 12px; }
+  .article-content li { margin-bottom: 4px; color: var(--text); }
+  .article-content strong { font-weight: 600; }
+
+  /* META FIELDS */
+  .meta-grid { display: flex; flex-direction: column; gap: 14px; }
+  .meta-item { background: var(--surface-3); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .meta-item-label {
+    font-size: 11px; font-weight: 600; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 6px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .meta-count { font-size: 11px; color: var(--text-3); font-weight: 400; }
+  .meta-count.ok { color: var(--green); }
+  .meta-count.warn { color: var(--amber); }
+  .meta-item-value { font-size: 13px; color: var(--text); line-height: 1.5; }
+  .meta-item-value.mono { font-family: 'DM Mono', monospace; font-size: 12px; }
+  .tags-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .tag {
+    font-size: 12px; padding: 3px 10px; border-radius: 20px;
+    background: var(--green-light); color: var(--green);
+    border: 1px solid var(--green-border); font-weight: 500;
+  }
+  .faq-item { margin-bottom: 12px; }
+  .faq-q { font-weight: 600; font-size: 13px; color: var(--text); margin-bottom: 4px; }
+  .faq-a { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+  .links-list { list-style: none; padding: 0; }
+  .links-list li { font-size: 13px; color: var(--text-2); padding: 6px 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; }
+  .links-list li::before { content: '→'; color: var(--green-mid); font-weight: 600; }
+  .links-list li:last-child { border-bottom: none; }
+
+  /* COMPLIANCE */
+  .compliance-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--green-light); border: 1px solid var(--green-border);
+    border-radius: 8px; padding: 8px 14px;
+    font-size: 12px; color: var(--green); font-weight: 500; margin-bottom: 14px;
+  }
+
+  /* PUBLISH SUCCESS */
+  .publish-success {
+    display: none; background: var(--green-light);
+    border: 1px solid var(--green-border); border-radius: var(--radius);
+    padding: 14px 18px; margin: 0 24px 20px;
+    font-size: 13px; color: var(--green); line-height: 1.6;
+  }
+  .publish-success.show { display: flex; align-items: center; gap: 10px; }
+  .publish-success a { color: var(--green); font-weight: 600; }
+
+  /* PROGRESS */
+  .progress-bar {
+    height: 3px; background: var(--border); margin: 0;
+    display: none; overflow: hidden;
+  }
+  .progress-bar.show { display: block; }
+  .progress-fill {
+    height: 100%; width: 0%; background: var(--green-mid);
+    transition: width 0.4s ease; border-radius: 0;
+  }
+
+  /* STATUS */
+  .status-msg {
+    font-size: 12px; color: var(--text-3); padding: 8px 24px;
+    display: none; border-bottom: 1px solid var(--border);
+    background: var(--surface-3);
+  }
+  .status-msg.show { display: block; }
+
+  /* WARN BOX */
+  .warn-box {
+    background: var(--amber-light); border: 1px solid var(--amber-border);
+    border-radius: var(--radius); padding: 10px 14px;
+    font-size: 12px; color: var(--amber); line-height: 1.6; margin-bottom: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .main { grid-template-columns: 1fr; }
+    .panel-left { border-right: none; border-bottom: 1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo-dot">
+      <svg viewBox="0 0 24 24"><path d="M17 8C8 10 5.9 16.17 3.82 21c1.41.78 3.36.22 4.4-1.34C9.3 18 10.57 17 12 17c2.5 0 4-2 6-3.5s4.5-1.5 5-4c-2.5 1-4-1-6-1.5z"/></svg>
+    </div>
+    <h1>Générateur Blog CBD</h1>
+    <span class="header-badge">Shopify</span>
+  </div>
+  <button class="config-btn" onclick="toggleConfig()">⚙ Configuration</button>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- LEFT PANEL -->
+  <div class="panel-left">
+
+    <!-- CONFIG -->
+    <div id="config-section" class="config-section" style="display:none;">
+      <div class="section-title" style="margin-bottom:10px;">Configuration API</div>
+      <div class="warn-box">Tes clés sont sauvegardées localement dans ton navigateur, jamais envoyées ailleurs.</div>
+      <div class="config-row">
+        <label>Token Shopify (shpat_...)</label>
+        <input type="password" id="shopify-token" placeholder="shpat_xxxxxxxxxxxxxxxx" />
+      </div>
+      <div class="config-row">
+        <label>URL boutique (sans https://)</label>
+        <input type="text" id="shopify-url" placeholder="871a55-20.myshopify.com" />
+      </div>
+      <div class="config-row">
+        <label>Clé API Anthropic</label>
+        <input type="password" id="anthropic-key" placeholder="sk-ant-xxxxxxxxxxxxxxxx" />
+      </div>
+      <button class="save-btn" onclick="saveConfig()">Sauvegarder</button>
+      <div class="saved-indicator" id="saved-indicator">✓ Configuration sauvegardée</div>
+    </div>
+
+    <!-- CATÉGORIES -->
+    <div class="section-title">Catégorie produit</div>
+    <div class="cat-grid" id="cat-grid">
+      <button class="cat-btn active" data-cat="fleurs" onclick="selectCat(this)">
+        <span class="icon">🌿</span>
+        <span class="name">Fleurs CBD</span>
+        <span class="sub">Indoor · outdoor · greenhouse</span>
+      </button>
+      <button class="cat-btn" data-cat="résines" onclick="selectCat(this)">
+        <span class="icon">🍯</span>
+        <span class="name">Résines CBD</span>
+        <span class="sub">Hash · pollen · wax</span>
+      </button>
+      <button class="cat-btn" data-cat="néocannabis" onclick="selectCat(this)">
+        <span class="icon">🔬</span>
+        <span class="name">Néocannabis</span>
+        <span class="sub">HHC · H4CBD · THCP</span>
+      </button>
+      <button class="cat-btn" data-cat="vêtements" onclick="selectCat(this)">
+        <span class="icon">👕</span>
+        <span class="name">Vêtements</span>
+        <span class="sub">Mode cannabis culture</span>
+      </button>
+    </div>
+
+    <!-- FORMULAIRE -->
+    <div class="field">
+      <label>Mot-clé principal *</label>
+      <input type="text" id="keyword" placeholder="ex: fleur CBD indoor OG Kush..." />
+    </div>
+    <div class="field">
+      <label>Produit / sujet précis</label>
+      <input type="text" id="product" placeholder="ex: OG Kush, Moonrock, HHC..." />
+    </div>
+    <div class="field">
+      <label>Longueur de l'article</label>
+      <select id="length">
+        <option value="500">Court (~500 mots)</option>
+        <option value="900" selected>Moyen (~900 mots)</option>
+        <option value="1500">Long (~1500 mots)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label>Angle éditorial</label>
+      <div class="angle-wrap" id="angle-wrap">
+        <button class="angle-btn active" data-angle="guide découverte" onclick="selectAngle(this)">Guide découverte</button>
+        <button class="angle-btn" data-angle="comparatif" onclick="selectAngle(this)">Comparatif</button>
+        <button class="angle-btn" data-angle="lifestyle" onclick="selectAngle(this)">Lifestyle</button>
+        <button class="angle-btn" data-angle="comment choisir" onclick="selectAngle(this)">Comment choisir</button>
+        <button class="angle-btn" data-angle="FAQ" onclick="selectAngle(this)">FAQ</button>
+        <button class="angle-btn" data-angle="tendances" onclick="selectAngle(this)">Tendances</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Mots-clés secondaires (optionnel)</label>
+      <textarea id="secondary" placeholder="ex: taux CBD, arômes terpènes, légal France..."></textarea>
+    </div>
+
+    <button class="gen-btn" id="gen-btn" onclick="generate()">
+      <div class="spinner"></div>
+      <span class="btn-text">✦ Générer l'article SEO</span>
+    </button>
+
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div class="panel-right">
+
+    <!-- EMPTY STATE -->
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">🌿</div>
+      <h2>Prêt à générer</h2>
+      <p>Configure ta catégorie, ton mot-clé et clique sur "Générer" pour créer un article SEO CBD optimisé.</p>
+    </div>
+
+    <!-- PROGRESS -->
+    <div class="progress-bar" id="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <div class="status-msg" id="status-msg"></div>
+
+    <!-- RESULT -->
+    <div class="result-card" id="result-card">
+      <div class="result-header">
+        <div class="result-title" id="result-h1">—</div>
+        <div class="result-actions">
+          <button class="action-btn" onclick="copyArticle()">Copier</button>
+          <button class="publish-btn" id="publish-btn" onclick="publishToShopify()">
+            <div class="publish-spinner" id="pub-spinner"></div>
+            <span id="pub-text">↑ Publier sur Shopify</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="tabs">
+        <div class="tab active" onclick="switchTab('article', this)">Article</div>
+        <div class="tab" onclick="switchTab('seo', this)">SEO Meta</div>
+        <div class="tab" onclick="switchTab('faq', this)">FAQ</div>
+        <div class="tab" onclick="switchTab('links', this)">Liens internes</div>
+      </div>
+
+      <div class="publish-success" id="publish-success">
+        <span>✓</span>
+        <span>Article publié ! <a id="article-link" href="#" target="_blank">Voir sur Shopify →</a></span>
+      </div>
+
+      <div class="tab-panel active" id="panel-article">
+        <div class="article-content" id="article-out"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-seo">
+        <div class="meta-grid" id="meta-out"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-faq">
+        <div id="faq-out"></div>
+      </div>
+
+      <div class="tab-panel" id="panel-links">
+        <div id="links-out"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let selCat = 'fleurs';
+let selAngle = 'guide découverte';
+let currentResult = null;
+
+// ─── CONFIG ──────────────────────────────────────────────────────────────────
+function toggleConfig() {
+  const s = document.getElementById('config-section');
+  s.style.display = s.style.display === 'none' ? 'block' : 'none';
+  if (s.style.display === 'block') loadConfig();
+}
+
+function loadConfig() {
+  document.getElementById('shopify-token').value = localStorage.getItem('cbd_shopify_token') || '';
+  document.getElementById('shopify-url').value = localStorage.getItem('cbd_shopify_url') || '';
+  document.getElementById('anthropic-key').value = localStorage.getItem('cbd_anthropic_key') || '';
+}
+
+function saveConfig() {
+  localStorage.setItem('cbd_shopify_token', document.getElementById('shopify-token').value.trim());
+  localStorage.setItem('cbd_shopify_url', document.getElementById('shopify-url').value.trim());
+  localStorage.setItem('cbd_anthropic_key', document.getElementById('anthropic-key').value.trim());
+  const ind = document.getElementById('saved-indicator');
+  ind.style.display = 'block';
+  setTimeout(() => { ind.style.display = 'none'; }, 2500);
+}
+
+// ─── CAT / ANGLE ─────────────────────────────────────────────────────────────
+function selectCat(el) {
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  selCat = el.dataset.cat;
+}
+
+function selectAngle(el) {
+  document.querySelectorAll('.angle-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  selAngle = el.dataset.angle;
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+function switchTab(name, el) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+// ─── STATUS ───────────────────────────────────────────────────────────────────
+function setStatus(msg) {
+  const s = document.getElementById('status-msg');
+  s.textContent = msg; s.classList.add('show');
+}
+function setProgress(pct) {
+  document.getElementById('progress-fill').style.width = pct + '%';
+}
+function showProgress() {
+  document.getElementById('progress-bar').classList.add('show');
+  document.getElementById('status-msg').classList.add('show');
+}
+function hideProgress() {
+  setTimeout(() => {
+    document.getElementById('progress-bar').classList.remove('show');
+    document.getElementById('status-msg').classList.remove('show');
+  }, 800);
+}
+
+// ─── CAT CONTEXT ─────────────────────────────────────────────────────────────
+const catContext = {
+  fleurs: `Catégorie : Fleurs CBD (Cannabis sativa L., THC < 0,3%). Parle de : variétés, taux CBD, terpènes/arômes, culture (indoor/outdoor/greenhouse), infusion/vaporisation. Ne JAMAIS mentionner effets psychoactifs, défonce, usage fumé récréatif.`,
+  résines: `Catégorie : Résines CBD (hash, pollen, wax). Parle de : fabrication, concentrations, textures, origines, infusion/vaporisation. Ne JAMAIS mentionner effets psychoactifs, usage récréatif fumé.`,
+  néocannabis: `Catégorie : Néocannabis (HHC, H4CBD, THCP, CBN, CBG…). Parle de : définition scientifique, différence avec CBD, cadre légal France, précautions. Rester factuel. Ne JAMAIS mentionner effets stupéfiants.`,
+  vêtements: `Catégorie : Vêtements mode cannabis culture. Parle de : tendances streetwear, chanvre/coton bio, culture légale, éco-responsabilité. Aucune référence à la consommation.`
+};
+
+// ─── GENERATE ─────────────────────────────────────────────────────────────────
+async function generate() {
+  const keyword = document.getElementById('keyword').value.trim();
+  if (!keyword) { alert('Entre un mot-clé principal.'); return; }
+
+  const anthropicKey = localStorage.getItem('cbd_anthropic_key');
+  if (!anthropicKey) {
+    alert('Configure ta clé API Anthropic dans ⚙ Configuration.');
+    document.getElementById('config-section').style.display = 'block';
+    loadConfig();
+    return;
+  }
+
+  const product = document.getElementById('product').value.trim();
+  const secondary = document.getElementById('secondary').value.trim();
+  const wordCount = document.getElementById('length').value;
+
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true; btn.classList.add('loading');
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('result-card').classList.remove('show');
+  document.getElementById('publish-success').classList.remove('show');
+  showProgress();
+  setProgress(10); setStatus('Analyse du mot-clé CBD...');
+
+  const prompt = `Tu es un rédacteur SEO expert CBD légal France.
+${catContext[selCat]}
+
+Génère un article de blog JSON strict :
+{
+  "meta_title": "max 60 chars avec mot-clé",
+  "meta_description": "max 155 chars incitative avec mot-clé",
+  "url_slug": "minuscules-tirets-sans-accents",
+  "h1": "titre principal",
+  "article_html": "HTML basique (h2, p, ul, li, strong) ~${wordCount} mots",
+  "tags": ["tag1","tag2","tag3","tag4","tag5"],
+  "faq": [{"q":"question","a":"réponse"},{"q":"question","a":"réponse"},{"q":"question","a":"réponse"}],
+  "internal_links": ["suggestion ancre 1","suggestion ancre 2","suggestion ancre 3"],
+  "conformite_note": "note courte conformité légale"
+}
+
+Paramètres :
+- Mot-clé : "${keyword}"
+- Produit : "${product || 'général'}"
+- Angle : ${selAngle}
+- Mots-clés secondaires : "${secondary || 'aucun'}"
+
+Réponds UNIQUEMENT avec le JSON valide.`;
+
+  try {
+    setProgress(30); setStatus('Rédaction en cours...');
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': anthropicKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    setProgress(75); setStatus('Optimisation SEO...');
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    const raw = data.content.map(i => i.text || '').join('');
+    const clean = raw.replace(/```json|```/g, '').trim();
+    currentResult = JSON.parse(clean);
+    setProgress(95); setStatus('Mise en forme...');
+    renderResult(currentResult);
+    setProgress(100);
+    hideProgress();
+  } catch(e) {
+    setStatus('Erreur : ' + e.message);
+    document.getElementById('empty-state').style.display = 'flex';
+  }
+  btn.disabled = false; btn.classList.remove('loading');
+}
+
+// ─── RENDER ───────────────────────────────────────────────────────────────────
+function renderResult(r) {
+  document.getElementById('result-h1').textContent = r.h1 || '—';
+
+  // Article
+  const html = (r.article_html || '')
+    .replace(/<h2>/g, '<h2>')
+    .replace(/<p>/g, '<p>');
+  document.getElementById('article-out').innerHTML =
+    `<h1>${r.h1}</h1>` + html;
+
+  // SEO Meta
+  const mc = (r.meta_title || '').length;
+  const dc = (r.meta_description || '').length;
+  document.getElementById('meta-out').innerHTML = `
+    <div class="compliance-badge">✓ ${r.conformite_note || 'Conforme réglementation CBD France'}</div>
+    <div class="meta-item">
+      <div class="meta-item-label">Meta Title <span class="meta-count ${mc <= 60 ? 'ok' : 'warn'}">${mc}/60</span></div>
+      <div class="meta-item-value">${r.meta_title || ''}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-item-label">Meta Description <span class="meta-count ${dc <= 155 ? 'ok' : 'warn'}">${dc}/155</span></div>
+      <div class="meta-item-value">${r.meta_description || ''}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-item-label">URL Slug</div>
+      <div class="meta-item-value mono">/blogs/news/${r.url_slug || ''}</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-item-label">Tags Shopify</div>
+      <div class="tags-row">${(r.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+    </div>
+  `;
+
+  // FAQ
+  document.getElementById('faq-out').innerHTML =
+    (r.faq || []).map(f => `
+      <div class="faq-item">
+        <div class="faq-q">Q : ${f.q}</div>
+        <div class="faq-a">${f.a}</div>
+      </div>`).join('');
+
+  // Links
+  document.getElementById('links-out').innerHTML = `
+    <ul class="links-list">
+      ${(r.internal_links || []).map(l => `<li>${l}</li>`).join('')}
+    </ul>`;
+
+  document.getElementById('result-card').classList.add('show');
+
+  // Reset to article tab
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab')[0].classList.add('active');
+  document.getElementById('panel-article').classList.add('active');
+}
+
+// ─── COPY ─────────────────────────────────────────────────────────────────────
+function copyArticle() {
+  if (!currentResult) return;
+  const text = document.getElementById('article-out').innerText;
+  navigator.clipboard.writeText(text).then(() => alert('Article copié !'));
+}
+
+// ─── PUBLISH ──────────────────────────────────────────────────────────────────
+async function publishToShopify() {
+  if (!currentResult) return;
+  const token = localStorage.getItem('cbd_shopify_token');
+  const shopUrl = localStorage.getItem('cbd_shopify_url');
+  if (!token || !shopUrl) {
+    alert('Configure ton token Shopify dans ⚙ Configuration.');
+    document.getElementById('config-section').style.display = 'block';
+    loadConfig();
+    return;
+  }
+
+  const btn = document.getElementById('publish-btn');
+  const spinner = document.getElementById('pub-spinner');
+  const pubText = document.getElementById('pub-text');
+  btn.disabled = true;
+  spinner.style.display = 'block';
+  pubText.textContent = 'Publication...';
+
+  try {
+    // 1. Récupère l'ID du blog
+    const blogsRes = await fetch(`https://${shopUrl}/admin/api/2026-01/blogs.json`, {
+      headers: { 'X-Shopify-Access-Token': token, 'Content-Type': 'application/json' }
+    });
+    const blogsData = await blogsRes.json();
+    if (!blogsData.blogs || blogsData.blogs.length === 0) throw new Error('Aucun blog trouvé sur ta boutique.');
+    const blogId = blogsData.blogs[0].id;
+
+    // 2. Publie l'article
+    const articleRes = await fetch(`https://${shopUrl}/admin/api/2026-01/blogs/${blogId}/articles.json`, {
+      method: 'POST',
+      headers: { 'X-Shopify-Access-Token': token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        article: {
+          title: currentResult.h1,
+          body_html: currentResult.article_html,
+          tags: (currentResult.tags || []).join(', '),
+          published: true,
+          metafields: [
+            { namespace: 'seo', key: 'title', value: currentResult.meta_title, type: 'single_line_text_field' },
+            { namespace: 'seo', key: 'description', value: currentResult.meta_description, type: 'single_line_text_field' }
+          ]
+        }
+      })
+    });
+    const articleData = await articleRes.json();
+    if (!articleData.article) throw new Error(JSON.stringify(articleData.errors || 'Erreur publication'));
+
+    const articleUrl = `https://${shopUrl.replace('.myshopify.com', '')}.com/blogs/news/${articleData.article.handle}`;
+    document.getElementById('article-link').href = `https://${shopUrl}/admin/blogs/${blogId}/articles/${articleData.article.id}`;
+    document.getElementById('publish-success').classList.add('show');
+    pubText.textContent = '✓ Publié !';
+
+  } catch(e) {
+    alert('Erreur publication : ' + e.message);
+    pubText.textContent = '↑ Publier sur Shopify';
+  }
+
+  spinner.style.display = 'none';
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
 
